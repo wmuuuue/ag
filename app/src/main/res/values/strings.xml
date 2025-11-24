@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">剪贴板笔记</string>
+    <string name="add_note">添加笔记</string>
+    <string name="record_audio">录音</string>
+    <string name="settings">设置</string>
+    <string name="send">发送</string>
+    <string name="clear">清空</string>
+    <string name="floating_icon">浮动图标</string>
+    <string name="color_settings">颜色设置</string>
+    <string name="clipboard_text_color">剪贴板文字颜色</string>
+    <string name="user_input_text_color">用户输入文字颜色</string>
+    <string name="change_color">更改</string>
+</resources>
