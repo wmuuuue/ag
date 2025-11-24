@@ -30,11 +30,22 @@ jobs:
 
     - name: Decode keystore
       run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
-        ls -lh keystore.jks
+        if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+          echo "⚠️ KEYSTORE_BASE64 is empty or not set!"
+        else
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+          ls -lh keystore.jks
+          echo "✅ Keystore decoded successfully"
+        fi
 
     - name: Build with Gradle
-      run: ./gradlew assembleRelease --stacktrace
+      run: |
+        echo "Java version:"
+        java -version
+        echo "Gradle version:"
+        ./gradlew --version
+        echo "Building APK..."
+        ./gradlew assembleRelease --info 2>&1 | grep -E "(BUILD|signing|apk|error|Error|ERROR)" || ./gradlew assembleRelease
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -42,8 +53,11 @@ jobs:
 
     - name: Check APK output
       run: |
-        ls -la app/build/outputs/apk/release/ || echo "APK directory not found"
-        find app/build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        echo "Checking for APK files..."
+        find app/build -name "*.apk" -type f -ls 2>/dev/null || echo "No APK files found"
+        echo ""
+        echo "Full build output directory:"
+        ls -la app/build/outputs/ 2>/dev/null || echo "app/build/outputs not found"
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
