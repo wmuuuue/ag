@@ -60,6 +60,7 @@
 
     </LinearLayout>
 
+    <!-- 三个可移动的FAB按钮 -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabScrollToTop"
         android:layout_width="wrap_content"
@@ -67,7 +68,24 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:src="@drawable/ic_up"
-        android:contentDescription="回到顶部"
-        android:visibility="gone" />
+        android:contentDescription="回到顶部" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollToLastRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="80dp"
+        android:src="@drawable/ic_read"
+        android:contentDescription="最后已读" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollToBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="144dp"
+        android:src="@drawable/ic_down"
+        android:contentDescription="回到底部" />
 
 </FrameLayout>
