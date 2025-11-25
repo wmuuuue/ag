@@ -90,7 +90,6 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onCreate: Inflating binding")
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
-            setSupportActionBar(binding.toolbar)
             Log.d(TAG, "onCreate: Content view set")
 
             audioRecorder = AudioRecorderManager(this)
