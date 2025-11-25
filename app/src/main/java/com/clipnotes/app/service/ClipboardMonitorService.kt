@@ -63,7 +63,7 @@ class ClipboardMonitorService : Service() {
                     if (!isMonitoringPaused) {
                         checkClipboard()
                     }
-                    delay(200) // 每 500ms 检查一次
+                    delay(200) // 每 200ms 检查一次
                 } catch (e: Exception) {
                     LoggerUtil.logError("轮询异常", e)
                     delay(1000)
@@ -76,11 +76,16 @@ class ClipboardMonitorService : Service() {
         try {
             val clip = clipboardManager?.primaryClip
             if (clip != null && clip.itemCount > 0) {
-                val text = clip.getItemAt(0).text?.toString()
-                if (!text.isNullOrBlank() && text != lastClipboardText) {
-                    lastClipboardText = text
-                    LoggerUtil.log("✓ 剪贴板捕获: $text")
-                    saveToDatabase(text)
+                val text = clip.getItemAt(0).text?.toString()?.trim()
+                if (!text.isNullOrBlank()) {
+                    // 更强的去重：比较规范化后的文本
+                    val normalizedNew = text.trim()
+                    val normalizedOld = lastClipboardText?.trim()
+                    if (normalizedNew != normalizedOld) {
+                        lastClipboardText = text
+                        LoggerUtil.log("✓ 剪贴板捕获: $text")
+                        saveToDatabase(text)
+                    }
                 }
             }
         } catch (e: Exception) {
