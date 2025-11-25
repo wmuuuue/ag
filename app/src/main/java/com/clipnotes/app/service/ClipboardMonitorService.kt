@@ -78,25 +78,25 @@ class ClipboardMonitorService : Service() {
             if (clip != null && clip.itemCount > 0) {
                 val text = clip.getItemAt(0).text?.toString()?.trim()
                 if (!text.isNullOrBlank()) {
-                    // 三层去重机制：
-                    // 1. 与上一次剪贴板内容比较
                     val normalizedNew = text.trim()
                     val normalizedOld = lastClipboardText?.trim()
                     
                     if (normalizedNew != normalizedOld) {
-                        // 2. 检查是否已在最近保存的列表中
-                        if (!recentlySavedContents.contains(normalizedNew)) {
-                            clipboardNotifyCount++
-                            lastClipboardText = text
-                            mainHandler.post {
-                                Toast.makeText(this, "📋 检测到剪切板: $clipboardNotifyCount 条内容", Toast.LENGTH_SHORT).show()
-                            }
-                            saveToDatabase(text)
-                        }
+                        lastClipboardText = text
                     }
                 }
             }
         } catch (e: Exception) {
+        }
+    }
+    
+    fun getLatestClipboardText(): String? {
+        return lastClipboardText
+    }
+    
+    fun saveClipboardToNote() {
+        lastClipboardText?.let { text ->
+            saveToDatabase(text)
         }
     }
 
@@ -112,23 +112,9 @@ class ClipboardMonitorService : Service() {
                 )
                 app.repository.insertNote(note)
                 
-                // 添加到最近保存的内容缓存
-                val normalizedText = text.trim()
-                recentlySavedContents.add(normalizedText)
-                
-                // 如果缓存超过最大值，移除最早的
-                if (recentlySavedContents.size > MAX_SAVED_CACHE) {
-                    val iterator = recentlySavedContents.iterator()
-                    if (iterator.hasNext()) {
-                        iterator.next()
-                        iterator.remove()
-                    }
-                }
-                
                 // 成功保存提示
-                savedNotifyCount++
                 mainHandler.post {
-                    Toast.makeText(this@ClipboardMonitorService, "✅ 已保存: $savedNotifyCount 条到笔记", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ClipboardMonitorService, "✅ 已保存到笔记", Toast.LENGTH_SHORT).show()
                 }
                 
             } catch (e: Exception) {
