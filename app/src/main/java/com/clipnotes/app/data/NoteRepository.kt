@@ -39,4 +39,6 @@ class NoteRepository(private val noteDao: NoteDao, private val deviceDao: Paired
     }
     
     suspend fun getLastReadNote(): NoteEntity? = noteDao.getLastReadNote()
+    
+    suspend fun getReadNotesCount(): Int = noteDao.getReadNotesCount()
 }
