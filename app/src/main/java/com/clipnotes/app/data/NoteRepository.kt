@@ -30,4 +30,13 @@ class NoteRepository(private val noteDao: NoteDao, private val deviceDao: Paired
     
     suspend fun updateLastConnected(deviceId: String, timestamp: Long) = 
         deviceDao.updateLastConnected(deviceId, timestamp)
+    
+    suspend fun markNoteAsRead(noteId: Long) {
+        val note = noteDao.getNoteById(noteId)
+        note?.let {
+            noteDao.updateNote(it.copy(isRead = true, lastReadTime = System.currentTimeMillis()))
+        }
+    }
+    
+    suspend fun getLastReadNote(): NoteEntity? = noteDao.getLastReadNote()
 }
