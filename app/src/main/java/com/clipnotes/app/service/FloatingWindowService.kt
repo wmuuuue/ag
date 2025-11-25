@@ -44,7 +44,7 @@ class FloatingWindowService : Service() {
         }
 
         val screenWidth = resources.displayMetrics.widthPixels
-        val floatingSize = screenWidth / 40
+        val floatingSize = screenWidth / 8
 
         val params = WindowManager.LayoutParams(
             floatingSize,
@@ -60,19 +60,16 @@ class FloatingWindowService : Service() {
 
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         floatingView = inflater.inflate(R.layout.floating_window, null)
+        val iconView = floatingView?.findViewById<ImageView>(R.id.floatingIcon)
 
-        floatingView?.findViewById<ImageView>(R.id.floatingIcon)?.apply {
-            setOnClickListener {
-                // 点击浮动图标，保存剪切板最新内容到笔记
-                saveClipboardToNote()
-            }
-
+        iconView?.apply {
             setOnTouchListener(object : View.OnTouchListener {
                 private var initialX = 0
                 private var initialY = 0
                 private var initialTouchX = 0f
                 private var initialTouchY = 0f
                 private var isDragging = false
+                private var downTime = 0L
 
                 override fun onTouch(v: View, event: MotionEvent): Boolean {
                     when (event.action) {
@@ -82,6 +79,7 @@ class FloatingWindowService : Service() {
                             initialTouchX = event.rawX
                             initialTouchY = event.rawY
                             isDragging = false
+                            downTime = System.currentTimeMillis()
                             return true
                         }
                         MotionEvent.ACTION_MOVE -> {
@@ -92,11 +90,21 @@ class FloatingWindowService : Service() {
                                 params.x = initialX + deltaX
                                 params.y = initialY + deltaY
                                 windowManager?.updateViewLayout(floatingView, params)
+                                return true
                             }
                             return true
                         }
                         MotionEvent.ACTION_UP -> {
-                            return isDragging  // 如果是拖动则拦截，否则允许点击
+                            val deltaX = (event.rawX - initialTouchX).toInt()
+                            val deltaY = (event.rawY - initialTouchY).toInt()
+                            if (!isDragging && Math.abs(deltaX) <= 10 && Math.abs(deltaY) <= 10) {
+                                mainHandler.post {
+                                    Toast.makeText(this@FloatingWindowService, "📌 点击已触发", Toast.LENGTH_SHORT).show()
+                                }
+                                saveClipboardToNote()
+                                showClickFeedback()
+                            }
+                            return true
                         }
                     }
                     return false
@@ -106,7 +114,19 @@ class FloatingWindowService : Service() {
 
         windowManager?.addView(floatingView, params)
     }
-    
+
+    private fun showClickFeedback() {
+        val iconView = floatingView?.findViewById<ImageView>(R.id.floatingIcon)
+
+        mainHandler.post {
+            iconView?.visibility = View.GONE
+        }
+
+        mainHandler.postDelayed({
+            iconView?.visibility = View.VISIBLE
+        }, 1000)
+    }
+
     private fun saveClipboardToNote() {
         scope.launch(Dispatchers.IO) {
             try {
@@ -122,10 +142,9 @@ class FloatingWindowService : Service() {
                             textColor = color
                         )
                         app.repository.insertNote(note)
-                        
-                        // 显示成功提示
+
                         mainHandler.post {
-                            Toast.makeText(this@FloatingWindowService, "✅ 已保存到笔记", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@FloatingWindowService, "✅ 已保存到笔记: ${text.take(20)}", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         mainHandler.post {
@@ -139,7 +158,7 @@ class FloatingWindowService : Service() {
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    Toast.makeText(this@FloatingWindowService, "❌ 保存失败", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FloatingWindowService, "❌ 保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -164,3 +183,8 @@ class FloatingWindowService : Service() {
         }
     }
 }
+
+// Line 1
+// Line 2
+// Line 3
+// Line 4
