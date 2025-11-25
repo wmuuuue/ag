@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onCreate: Inflating binding")
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
+            setSupportActionBar(binding.toolbar)
             Log.d(TAG, "onCreate: Content view set")
 
             audioRecorder = AudioRecorderManager(this)
@@ -272,8 +273,15 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.notes.collectLatest { notes ->
                 notesAdapter.submitList(notes)
+                updateTitleWithCounts(notes)
             }
         }
+    }
+    
+    private fun updateTitleWithCounts(notes: List<NoteEntity>) {
+        val totalCount = notes.size
+        val readCount = notes.count { it.isRead }
+        supportActionBar?.title = "剪切板笔记 [$readCount/$totalCount]"
     }
 
     private fun requestPermissions() {
@@ -450,6 +458,24 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         Log.d(TAG, "onResume: Pausing clipboard monitoring")
         ClipboardMonitorService.pause(this)
+        scrollToLastReadNote()
+    }
+    
+    private fun scrollToLastReadNote() {
+        lifecycleScope.launch {
+            try {
+                val lastReadNote = viewModel.getAllNotesSnapshot().firstOrNull { it.isRead }
+                if (lastReadNote != null) {
+                    val notes = viewModel.getAllNotesSnapshot()
+                    val index = notes.indexOfFirst { it.id == lastReadNote.id }
+                    if (index >= 0) {
+                        binding.recyclerView.scrollToPosition(index)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error scrolling to last read note", e)
+            }
+        }
     }
 
     override fun onPause() {
