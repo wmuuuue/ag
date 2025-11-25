@@ -11,7 +11,6 @@ import com.clipnotes.app.NoteApplication
 import com.clipnotes.app.R
 import com.clipnotes.app.data.ContentType
 import com.clipnotes.app.data.NoteEntity
-import com.clipnotes.app.data.NoteRepository
 import com.clipnotes.app.ui.MainActivity
 import com.clipnotes.app.utils.LoggerUtil
 import kotlinx.coroutines.*
@@ -21,15 +20,7 @@ class ClipboardMonitorService : Service() {
     private var clipboardManager: ClipboardManager? = null
     private var lastClipboardText: String? = null
     private var isMonitoringPaused = false
-
-    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
-        LoggerUtil.log("监听器触发! 暂停状态: $isMonitoringPaused")
-        if (!isMonitoringPaused) {
-            handleClipboardChange()
-        } else {
-            LoggerUtil.log("监听触发但监控已暂停，忽略本次变化")
-        }
-    }
+    private var pollingJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -37,19 +28,13 @@ class ClipboardMonitorService : Service() {
         try {
             clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             LoggerUtil.log("clipboardManager 获取成功: ${clipboardManager != null}")
-            
-            if (clipboardManager != null) {
-                clipboardManager?.addPrimaryClipChangedListener(clipboardListener)
-                LoggerUtil.log("✓ 剪贴板监听器已注册")
-            } else {
-                LoggerUtil.logError("clipboardManager 为 null")
-            }
         } catch (e: Exception) {
             LoggerUtil.logError("初始化 clipboardManager 失败", e)
         }
-        
+
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
+        startPolling()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -70,22 +55,33 @@ class ClipboardMonitorService : Service() {
         return START_STICKY
     }
 
-    private fun handleClipboardChange() {
-        LoggerUtil.log("检测到剪贴板变化")
+    private fun startPolling() {
+        LoggerUtil.log("启动剪贴板轮询...")
+        pollingJob = scope.launch(Dispatchers.Default) {
+            while (isActive) {
+                try {
+                    if (!isMonitoringPaused) {
+                        checkClipboard()
+                    }
+                    delay(500) // 每 500ms 检查一次
+                } catch (e: Exception) {
+                    LoggerUtil.logError("轮询异常", e)
+                    delay(1000)
+                }
+            }
+        }
+    }
+
+    private fun checkClipboard() {
         try {
             val clip = clipboardManager?.primaryClip
             if (clip != null && clip.itemCount > 0) {
                 val text = clip.getItemAt(0).text?.toString()
-                LoggerUtil.log("剪贴板内容: $text")
                 if (!text.isNullOrBlank() && text != lastClipboardText) {
                     lastClipboardText = text
-                    LoggerUtil.log("准备保存: $text")
+                    LoggerUtil.log("✓ 剪贴板捕获: $text")
                     saveToDatabase(text)
-                } else {
-                    LoggerUtil.log("内容未变化或为空，跳过")
                 }
-            } else {
-                LoggerUtil.log("剪贴板为空")
             }
         } catch (e: Exception) {
             LoggerUtil.logError("读取剪贴板异常", e)
@@ -95,7 +91,7 @@ class ClipboardMonitorService : Service() {
     private fun saveToDatabase(text: String) {
         scope.launch(Dispatchers.IO) {
             try {
-                LoggerUtil.log("开始保存笔记到数据库")
+                LoggerUtil.log("开始保存笔记...")
                 val app = application as NoteApplication
                 val color = app.preferenceManager.clipboardTextColor
                 val note = NoteEntity(
@@ -113,12 +109,12 @@ class ClipboardMonitorService : Service() {
 
     fun pauseMonitoring() {
         isMonitoringPaused = true
-        LoggerUtil.log("监控状态已改变: 已暂停 (isMonitoringPaused=$isMonitoringPaused)")
+        LoggerUtil.log("监控已暂停")
     }
 
     fun resumeMonitoring() {
         isMonitoringPaused = false
-        LoggerUtil.log("监控状态已改变: 已恢复 (isMonitoringPaused=$isMonitoringPaused)")
+        LoggerUtil.log("监控已恢复")
     }
 
     private fun createNotificationChannel() {
@@ -156,7 +152,7 @@ class ClipboardMonitorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        clipboardManager?.removePrimaryClipChangedListener(clipboardListener)
+        pollingJob?.cancel()
         scope.cancel()
     }
 
