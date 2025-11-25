@@ -384,11 +384,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume: Pausing clipboard monitoring")
         ClipboardMonitorService.pause(this)
     }
 
     override fun onPause() {
         super.onPause()
+        Log.d(TAG, "onPause: Resuming clipboard monitoring")
         ClipboardMonitorService.resume(this)
     }
 
