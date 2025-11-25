@@ -5,11 +5,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
-    @Query("SELECT * FROM notes ORDER BY lastReadTime DESC, timestamp ASC")
+    @Query("SELECT * FROM notes ORDER BY timestamp DESC")
     fun getAllNotes(): Flow<List<NoteEntity>>
 
     @Query("SELECT * FROM notes WHERE isRead = 1 ORDER BY lastReadTime DESC LIMIT 1")
     suspend fun getLastReadNote(): NoteEntity?
+    
+    @Query("SELECT COUNT(*) FROM notes WHERE isRead = 1")
+    suspend fun getReadNotesCount(): Int
 
     @Query("SELECT * FROM notes WHERE id = :noteId")
     suspend fun getNoteById(noteId: Long): NoteEntity?
