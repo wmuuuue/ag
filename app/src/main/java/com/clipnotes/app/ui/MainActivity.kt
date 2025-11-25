@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             binding.recyclerView.smoothScrollToPosition(0)
         }
         binding.fabScrollToTop.setOnTouchListener { v, event ->
-            makeFabDraggable(v, event)
+            makeFabDraggable(v as android.view.View, event)
         }
         
         // 跳到最后一次点击已读
@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.fabScrollToLastRead.setOnTouchListener { v, event ->
-            makeFabDraggable(v, event)
+            makeFabDraggable(v as android.view.View, event)
         }
         
         // 回到底部
@@ -166,33 +166,42 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.fabScrollToBottom.setOnTouchListener { v, event ->
-            makeFabDraggable(v, event)
+            makeFabDraggable(v as android.view.View, event)
         }
     }
     
-    private var lastX = 0f
-    private var lastY = 0f
+    private val fabTouchData = mutableMapOf<android.view.View, Pair<Float, Float>>()
+    private var isFabDragging = false
     
     private fun makeFabDraggable(view: android.view.View, event: android.view.MotionEvent): Boolean {
         val params = (view.layoutParams as android.widget.FrameLayout.LayoutParams)
         
         when (event.action) {
             android.view.MotionEvent.ACTION_DOWN -> {
-                lastX = event.rawX
-                lastY = event.rawY
-                return true
+                fabTouchData[view] = Pair(event.rawX, event.rawY)
+                isFabDragging = false
+                return false  // 允许点击事件继续传递
             }
             android.view.MotionEvent.ACTION_MOVE -> {
+                val (lastX, lastY) = fabTouchData[view] ?: return false
                 val deltaX = (event.rawX - lastX).toInt()
                 val deltaY = (event.rawY - lastY).toInt()
                 
-                params.rightMargin = Math.max(0, params.rightMargin - deltaX)
-                params.bottomMargin = Math.max(0, params.bottomMargin - deltaY)
-                view.layoutParams = params
-                
-                lastX = event.rawX
-                lastY = event.rawY
-                return true
+                // 移动距离超过5像素才认为是拖动
+                if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                    isFabDragging = true
+                    params.rightMargin = Math.max(0, params.rightMargin - deltaX)
+                    params.bottomMargin = Math.max(0, params.bottomMargin - deltaY)
+                    view.layoutParams = params
+                    
+                    fabTouchData[view] = Pair(event.rawX, event.rawY)
+                    return true  // 拦截事件
+                }
+                return false
+            }
+            android.view.MotionEvent.ACTION_UP -> {
+                fabTouchData.remove(view)
+                return isFabDragging  // 如果是拖动则拦截，否则允许点击
             }
         }
         return false
