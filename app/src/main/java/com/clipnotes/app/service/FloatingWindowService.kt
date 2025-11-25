@@ -27,10 +27,51 @@ class FloatingWindowService : Service() {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    companion object {
+        private const val NOTIFICATION_ID = 2
+        private const val CHANNEL_ID = "floating_window_channel"
+
+        fun start(context: Context) {
+            val intent = Intent(context, FloatingWindowService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        fun stop(context: Context) {
+            context.stopService(Intent(context, FloatingWindowService::class.java))
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, createNotification())
         showFloatingWindow()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "浮动窗口服务",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun createNotification(): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("剪切板笔记")
+            .setContentText("浮动窗口运行中...")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setOngoing(true)
+            .build()
     }
 
     private fun showFloatingWindow() {
@@ -171,20 +212,4 @@ class FloatingWindowService : Service() {
         floatingView?.let { windowManager?.removeView(it) }
         scope.cancel()
     }
-
-    companion object {
-        fun start(context: Context) {
-            val intent = Intent(context, FloatingWindowService::class.java)
-            context.startService(intent)
-        }
-
-        fun stop(context: Context) {
-            context.stopService(Intent(context, FloatingWindowService::class.java))
-        }
-    }
 }
-
-// Line 1
-// Line 2
-// Line 3
-// Line 4
