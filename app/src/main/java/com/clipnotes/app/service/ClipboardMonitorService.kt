@@ -23,16 +23,31 @@ class ClipboardMonitorService : Service() {
     private var isMonitoringPaused = false
 
     private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+        LoggerUtil.log("监听器触发! 暂停状态: $isMonitoringPaused")
         if (!isMonitoringPaused) {
             handleClipboardChange()
+        } else {
+            LoggerUtil.log("监听触发但监控已暂停，忽略本次变化")
         }
     }
 
     override fun onCreate() {
         super.onCreate()
         LoggerUtil.log("ClipboardMonitorService 已启动")
-        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboardManager?.addPrimaryClipChangedListener(clipboardListener)
+        try {
+            clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            LoggerUtil.log("clipboardManager 获取成功: ${clipboardManager != null}")
+            
+            if (clipboardManager != null) {
+                clipboardManager?.addPrimaryClipChangedListener(clipboardListener)
+                LoggerUtil.log("✓ 剪贴板监听器已注册")
+            } else {
+                LoggerUtil.logError("clipboardManager 为 null")
+            }
+        } catch (e: Exception) {
+            LoggerUtil.logError("初始化 clipboardManager 失败", e)
+        }
+        
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
     }
@@ -98,10 +113,12 @@ class ClipboardMonitorService : Service() {
 
     fun pauseMonitoring() {
         isMonitoringPaused = true
+        LoggerUtil.log("监控状态已改变: 已暂停 (isMonitoringPaused=$isMonitoringPaused)")
     }
 
     fun resumeMonitoring() {
         isMonitoringPaused = false
+        LoggerUtil.log("监控状态已改变: 已恢复 (isMonitoringPaused=$isMonitoringPaused)")
     }
 
     private fun createNotificationChannel() {
