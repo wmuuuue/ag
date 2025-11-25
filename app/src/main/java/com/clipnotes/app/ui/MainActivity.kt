@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -82,37 +81,26 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
-            Log.d(TAG, "onCreate: Starting MainActivity initialization")
             
-            Log.d(TAG, "onCreate: Inflating binding")
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
-            Log.d(TAG, "onCreate: Content view set")
 
             audioRecorder = AudioRecorderManager(this)
             networkService = NetworkDiscoveryService(this)
-            Log.d(TAG, "onCreate: Services initialized")
 
             setupRecyclerView()
-            Log.d(TAG, "onCreate: RecyclerView setup complete")
             
             setupClickListeners()
-            Log.d(TAG, "onCreate: Click listeners setup complete")
             
             requestPermissions()
-            Log.d(TAG, "onCreate: Permissions requested")
             
             observeNotes()
-            Log.d(TAG, "onCreate: Notes observer set up")
 
             networkService.startServer(8888) { notesJson, callback ->
                 showReceiveDialog(notesJson, callback)
             }
-            Log.d(TAG, "onCreate: Network server started")
-            Log.d(TAG, "onCreate: MainActivity initialization complete")
             
         } catch (e: Exception) {
-            Log.e(TAG, "onCreate: Critical error during initialization", e)
             Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
         }
@@ -463,21 +451,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun showLogsInfo() {
-        val logPath = LoggerUtil.getLogFilePath()
-        AlertDialog.Builder(this)
-            .setTitle("日志文件位置")
-            .setMessage(logPath)
-            .setPositiveButton("复制") { _, _ ->
-                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("log_path", logPath)
-                clipboard.setPrimaryClip(clip)
-                // 已复制
-            }
-            .setNegativeButton("关闭", null)
-            .show()
-    }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -497,17 +470,12 @@ class MainActivity : AppCompatActivity() {
                 clearAllNotes()
                 true
             }
-            R.id.action_logs -> {
-                showLogsInfo()
-                true
-            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume: Pausing clipboard monitoring")
         ClipboardMonitorService.pause(this)
         scrollToLatestNote()
     }
@@ -521,14 +489,12 @@ class MainActivity : AppCompatActivity() {
                     binding.recyclerView.scrollToPosition(notes.size - 1)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error scrolling to latest note", e)
             }
         }
     }
 
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "onPause: Resuming clipboard monitoring")
         ClipboardMonitorService.resume(this)
     }
 
