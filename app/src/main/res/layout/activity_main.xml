@@ -60,7 +60,7 @@
 
     </LinearLayout>
 
-    <!-- 三个可移动的FAB按钮 -->
+    <!-- 竖直排列的可拖动FAB按钮 -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabScrollToTop"
         android:layout_width="wrap_content"
