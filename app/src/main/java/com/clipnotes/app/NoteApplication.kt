@@ -3,6 +3,7 @@ package com.clipnotes.app
 import android.app.Application
 import com.clipnotes.app.data.AppDatabase
 import com.clipnotes.app.data.NoteRepository
+import com.clipnotes.app.utils.LoggerUtil
 import com.clipnotes.app.utils.PreferenceManager
 
 class NoteApplication : Application() {
@@ -15,6 +16,8 @@ class NoteApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        LoggerUtil.init(this)
+        LoggerUtil.log("应用启动")
     }
 
     companion object {
