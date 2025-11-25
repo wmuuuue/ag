@@ -31,6 +31,7 @@ import com.clipnotes.app.service.ClipboardMonitorService
 import com.clipnotes.app.service.FloatingWindowService
 import com.clipnotes.app.service.NetworkDiscoveryService
 import com.clipnotes.app.utils.AudioRecorderManager
+import com.clipnotes.app.utils.LoggerUtil
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -359,6 +360,21 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun showLogsInfo() {
+        val logPath = LoggerUtil.getLogFilePath()
+        AlertDialog.Builder(this)
+            .setTitle("日志文件位置")
+            .setMessage(logPath)
+            .setPositiveButton("复制") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("log_path", logPath)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("关闭", null)
+            .show()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -376,6 +392,10 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_clear -> {
                 clearAllNotes()
+                true
+            }
+            R.id.action_logs -> {
+                showLogsInfo()
                 true
             }
             else -> super.onOptionsItemSelected(item)
