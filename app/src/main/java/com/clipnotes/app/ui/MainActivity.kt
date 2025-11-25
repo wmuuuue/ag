@@ -31,7 +31,6 @@ import com.clipnotes.app.service.ClipboardMonitorService
 import com.clipnotes.app.service.FloatingWindowService
 import com.clipnotes.app.service.NetworkDiscoveryService
 import com.clipnotes.app.utils.AudioRecorderManager
-import com.clipnotes.app.utils.LoggerUtil
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -74,10 +73,8 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            LoggerUtil.log("✓ 剪贴板权限已授予")
             startServices()
         } else {
-            LoggerUtil.log("⚠ 剪贴板权限被拒绝，功能可能受限")
             startServices()
         }
     }
@@ -150,6 +147,9 @@ class MainActivity : AppCompatActivity() {
         binding.fabScrollToTop.setOnClickListener {
             binding.recyclerView.smoothScrollToPosition(0)
         }
+        binding.fabScrollToTop.setOnTouchListener { v, event ->
+            makeFabDraggable(v, event)
+        }
         
         // 跳到最后一次点击已读
         binding.fabScrollToLastRead.setOnClickListener {
@@ -164,6 +164,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        binding.fabScrollToLastRead.setOnTouchListener { v, event ->
+            makeFabDraggable(v, event)
+        }
         
         // 回到底部
         binding.fabScrollToBottom.setOnClickListener {
@@ -174,6 +177,37 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        binding.fabScrollToBottom.setOnTouchListener { v, event ->
+            makeFabDraggable(v, event)
+        }
+    }
+    
+    private var lastX = 0f
+    private var lastY = 0f
+    
+    private fun makeFabDraggable(view: android.view.View, event: android.view.MotionEvent): Boolean {
+        val params = (view.layoutParams as android.widget.FrameLayout.LayoutParams)
+        
+        when (event.action) {
+            android.view.MotionEvent.ACTION_DOWN -> {
+                lastX = event.rawX
+                lastY = event.rawY
+                return true
+            }
+            android.view.MotionEvent.ACTION_MOVE -> {
+                val deltaX = (event.rawX - lastX).toInt()
+                val deltaY = (event.rawY - lastY).toInt()
+                
+                params.rightMargin = Math.max(0, params.rightMargin - deltaX)
+                params.bottomMargin = Math.max(0, params.bottomMargin - deltaY)
+                view.layoutParams = params
+                
+                lastX = event.rawX
+                lastY = event.rawY
+                return true
+            }
+        }
+        return false
     }
 
     private fun setupClickListeners() {
@@ -251,7 +285,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun editNote(note: NoteEntity) {
         if (note.contentType == ContentType.AUDIO_RECORDING) {
-            Toast.makeText(this, "音频笔记无法编辑", Toast.LENGTH_SHORT).show()
+            // 无法编辑
             return
         }
         
@@ -286,7 +320,7 @@ class MainActivity : AppCompatActivity() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("note", text)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+        // 已复制
     }
 
     private fun observeNotes() {
@@ -326,14 +360,11 @@ class MainActivity : AppCompatActivity() {
             val readClipboardPermission = "android.permission.READ_CLIPBOARD_DATA"
             if (ContextCompat.checkSelfPermission(this, readClipboardPermission)
                 != PackageManager.PERMISSION_GRANTED) {
-                LoggerUtil.log("请求剪贴板读取权限...")
                 clipboardPermissionLauncher.launch(readClipboardPermission)
             } else {
-                LoggerUtil.log("✓ 剪贴板权限已存在")
                 startServices()
             }
         } else {
-            LoggerUtil.log("Android 12 及以下无需运行时权限，直接启动服务")
             startServices()
         }
     }
@@ -441,7 +472,7 @@ class MainActivity : AppCompatActivity() {
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("log_path", logPath)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+                // 已复制
             }
             .setNegativeButton("关闭", null)
             .show()
