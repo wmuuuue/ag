@@ -99,7 +99,7 @@ class ClipboardMonitorService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("剪贴板笔记")
-            .setContentText("正在监听剪贴板")
+            .setContentText("剪切板监控中")
             .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
