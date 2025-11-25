@@ -1,6 +1,7 @@
 package com.clipnotes.app.service
 
 import android.app.*
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
