@@ -45,26 +45,38 @@ class ClipboardMonitorService : Service() {
     }
 
     private fun handleClipboardChange() {
-        val clip = clipboardManager?.primaryClip
-        if (clip != null && clip.itemCount > 0) {
-            val text = clip.getItemAt(0).text?.toString()
-            if (!text.isNullOrBlank() && text != lastClipboardText) {
-                lastClipboardText = text
-                saveToDatabase(text)
+        try {
+            val clip = clipboardManager?.primaryClip
+            if (clip != null && clip.itemCount > 0) {
+                val text = clip.getItemAt(0).text?.toString()
+                if (!text.isNullOrBlank() && text != lastClipboardText) {
+                    lastClipboardText = text
+                    android.util.Log.d("ClipboardMonitor", "剪贴板变化捕获: $text")
+                    saveToDatabase(text)
+                } else {
+                    android.util.Log.d("ClipboardMonitor", "剪贴板内容未变化或为空")
+                }
             }
+        } catch (e: Exception) {
+            android.util.Log.e("ClipboardMonitor", "读取剪贴板错误", e)
         }
     }
 
     private fun saveToDatabase(text: String) {
         scope.launch(Dispatchers.IO) {
-            val app = application as NoteApplication
-            val color = app.preferenceManager.clipboardTextColor
-            val note = NoteEntity(
-                content = text,
-                contentType = ContentType.CLIPBOARD_TEXT,
-                textColor = color
-            )
-            app.repository.insertNote(note)
+            try {
+                val app = application as NoteApplication
+                val color = app.preferenceManager.clipboardTextColor
+                val note = NoteEntity(
+                    content = text,
+                    contentType = ContentType.CLIPBOARD_TEXT,
+                    textColor = color
+                )
+                app.repository.insertNote(note)
+                android.util.Log.d("ClipboardMonitor", "笔记已保存到数据库: $text")
+            } catch (e: Exception) {
+                android.util.Log.e("ClipboardMonitor", "保存笔记错误", e)
+            }
         }
     }
 
