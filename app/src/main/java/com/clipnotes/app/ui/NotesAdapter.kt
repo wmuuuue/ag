@@ -76,7 +76,7 @@ class NotesAdapter(
                         val clipboard = root.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText("note", note.content)
                         clipboard.setPrimaryClip(clip)
-                        Toast.makeText(root.context, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
+                        // 已复制
                         
                         // 标记为已读
                         onNoteMarkRead(note)
