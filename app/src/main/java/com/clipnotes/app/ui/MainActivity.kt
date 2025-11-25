@@ -79,9 +79,6 @@ class MainActivity : AppCompatActivity() {
             setContentView(binding.root)
             Log.d(TAG, "onCreate: Content view set")
 
-            setSupportActionBar(binding.toolbar)
-            Log.d(TAG, "onCreate: Action bar set")
-
             audioRecorder = AudioRecorderManager(this)
             networkService = NetworkDiscoveryService(this)
             Log.d(TAG, "onCreate: Services initialized")
@@ -97,9 +94,6 @@ class MainActivity : AppCompatActivity() {
             
             observeNotes()
             Log.d(TAG, "onCreate: Notes observer set up")
-            
-            ClipboardMonitorService.pause(this)
-            Log.d(TAG, "onCreate: ClipboardMonitorService paused")
 
             networkService.startServer(8888) { notesJson, callback ->
                 showReceiveDialog(notesJson, callback)
