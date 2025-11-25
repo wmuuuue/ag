@@ -13,7 +13,6 @@ import com.clipnotes.app.R
 import com.clipnotes.app.data.ContentType
 import com.clipnotes.app.data.NoteEntity
 import com.clipnotes.app.ui.MainActivity
-import com.clipnotes.app.utils.LoggerUtil
 import kotlinx.coroutines.*
 
 class ClipboardMonitorService : Service() {
@@ -27,12 +26,9 @@ class ClipboardMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        LoggerUtil.log("ClipboardMonitorService 已启动")
         try {
             clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            LoggerUtil.log("clipboardManager 获取成功: ${clipboardManager != null}")
         } catch (e: Exception) {
-            LoggerUtil.logError("初始化 clipboardManager 失败", e)
         }
 
         createNotificationChannel()
@@ -43,15 +39,12 @@ class ClipboardMonitorService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_PAUSE_MONITORING -> {
-                LoggerUtil.log("暂停剪贴板监控")
                 pauseMonitoring()
             }
             ACTION_RESUME_MONITORING -> {
-                LoggerUtil.log("恢复剪贴板监控")
                 resumeMonitoring()
             }
             ACTION_STOP_SERVICE -> {
-                LoggerUtil.log("停止 ClipboardMonitorService")
                 stopSelf()
             }
         }
@@ -59,7 +52,6 @@ class ClipboardMonitorService : Service() {
     }
 
     private fun startPolling() {
-        LoggerUtil.log("启动剪贴板轮询...")
         pollingJob = scope.launch(Dispatchers.Default) {
             while (isActive) {
                 try {
@@ -68,7 +60,6 @@ class ClipboardMonitorService : Service() {
                     }
                     delay(200) // 每 200ms 检查一次
                 } catch (e: Exception) {
-                    LoggerUtil.logError("轮询异常", e)
                     delay(1000)
                 }
             }
@@ -90,23 +81,19 @@ class ClipboardMonitorService : Service() {
                         // 2. 检查是否已在最近保存的列表中
                         if (!recentlySavedContents.contains(normalizedNew)) {
                             lastClipboardText = text
-                            LoggerUtil.log("✓ 剪贴板捕获: $text")
                             saveToDatabase(text)
                         } else {
-                            LoggerUtil.log("⚠ 重复内容，跳过: $text")
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            LoggerUtil.logError("读取剪贴板异常", e)
         }
     }
 
     private fun saveToDatabase(text: String) {
         scope.launch(Dispatchers.IO) {
             try {
-                LoggerUtil.log("开始保存笔记...")
                 val app = application as NoteApplication
                 val color = app.preferenceManager.clipboardTextColor
                 val note = NoteEntity(
@@ -129,21 +116,17 @@ class ClipboardMonitorService : Service() {
                     }
                 }
                 
-                LoggerUtil.log("✓ 笔记已保存: $text (缓存: ${recentlySavedContents.size}/$MAX_SAVED_CACHE)")
             } catch (e: Exception) {
-                LoggerUtil.logError("保存笔记异常", e)
             }
         }
     }
 
     fun pauseMonitoring() {
         isMonitoringPaused = true
-        LoggerUtil.log("监控已暂停")
     }
 
     fun resumeMonitoring() {
         isMonitoringPaused = false
-        LoggerUtil.log("监控已恢复")
     }
 
     private fun createNotificationChannel() {
