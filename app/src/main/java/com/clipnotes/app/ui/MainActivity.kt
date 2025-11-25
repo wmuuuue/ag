@@ -64,9 +64,21 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (Settings.canDrawOverlays(this)) {
-            startServices()
+            requestClipboardPermission()
         } else {
             Toast.makeText(this, "需要悬浮窗权限", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val clipboardPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            LoggerUtil.log("✓ 剪贴板权限已授予")
+            startServices()
+        } else {
+            LoggerUtil.log("⚠ 剪贴板权限被拒绝，功能可能受限")
+            startServices()
         }
     }
 
@@ -259,6 +271,21 @@ class MainActivity : AppCompatActivity() {
                 )
                 overlayPermissionLauncher.launch(intent)
             } else {
+                requestClipboardPermission()
+            }
+        } else {
+            startServices()
+        }
+    }
+
+    private fun requestClipboardPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CLIPBOARD_DATA)
+                != PackageManager.PERMISSION_GRANTED) {
+                LoggerUtil.log("请求剪贴板读取权限...")
+                clipboardPermissionLauncher.launch(Manifest.permission.READ_CLIPBOARD_DATA)
+            } else {
+                LoggerUtil.log("✓ 剪贴板权限已存在")
                 startServices()
             }
         } else {
