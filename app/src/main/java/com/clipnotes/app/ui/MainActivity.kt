@@ -124,7 +124,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         notesAdapter = NotesAdapter(
             onNoteClick = { note ->
-                copyToClipboard(note.content)
+                // 已在 adapter 中自动复制，此处可做其他操作
             },
             onNoteLongClick = { note ->
                 showNoteOptionsDialog(note)
@@ -133,11 +133,25 @@ class MainActivity : AppCompatActivity() {
                 audioRecorder.playAudio(audioPath) {
                     notesAdapter.notifyDataSetChanged()
                 }
+            },
+            onNoteMarkRead = { note ->
+                viewModel.markNoteAsRead(note)
             }
         )
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = notesAdapter
+            addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+                    if (dy > 0) {
+                        binding.fabScrollToTop.visibility = android.view.View.VISIBLE
+                    }
+                }
+            })
+        }
+        binding.fabScrollToTop.setOnClickListener {
+            binding.recyclerView.smoothScrollToPosition(0)
+            binding.fabScrollToTop.visibility = android.view.View.GONE
         }
     }
 
