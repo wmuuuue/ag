@@ -106,6 +106,15 @@ class ClipboardMonitorService : Service() {
                 )
                 app.repository.insertNote(note)
                 LoggerUtil.log("✓ 笔记已保存: $text")
+                
+                // 保存后清空系统剪贴板
+                try {
+                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+                    LoggerUtil.log("✓ 系统剪贴板已清空")
+                } catch (e: Exception) {
+                    LoggerUtil.logError("清空剪贴板异常", e)
+                }
             } catch (e: Exception) {
                 LoggerUtil.logError("保存笔记异常", e)
             }
