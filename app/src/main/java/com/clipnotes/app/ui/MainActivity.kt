@@ -141,17 +141,38 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = notesAdapter
-            addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
-                    if (dy > 0) {
-                        binding.fabScrollToTop.visibility = android.view.View.VISIBLE
-                    }
-                }
-            })
         }
+        setupFloatingButtons()
+    }
+    
+    private fun setupFloatingButtons() {
+        // 回到顶部
         binding.fabScrollToTop.setOnClickListener {
             binding.recyclerView.smoothScrollToPosition(0)
-            binding.fabScrollToTop.visibility = android.view.View.GONE
+        }
+        
+        // 跳到最后一次点击已读
+        binding.fabScrollToLastRead.setOnClickListener {
+            lifecycleScope.launch {
+                val lastReadNote = viewModel.getAllNotesSnapshot().lastOrNull { it.isRead }
+                if (lastReadNote != null) {
+                    val notes = viewModel.getAllNotesSnapshot()
+                    val index = notes.indexOfFirst { it.id == lastReadNote.id }
+                    if (index >= 0) {
+                        binding.recyclerView.smoothScrollToPosition(index)
+                    }
+                }
+            }
+        }
+        
+        // 回到底部
+        binding.fabScrollToBottom.setOnClickListener {
+            lifecycleScope.launch {
+                val notes = viewModel.getAllNotesSnapshot()
+                if (notes.isNotEmpty()) {
+                    binding.recyclerView.smoothScrollToPosition(notes.size - 1)
+                }
+            }
         }
     }
 
