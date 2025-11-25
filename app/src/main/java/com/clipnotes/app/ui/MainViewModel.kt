@@ -54,6 +54,12 @@ class MainViewModel(
             repository.deleteAllNotes()
         }
     }
+
+    fun markNoteAsRead(note: NoteEntity) {
+        viewModelScope.launch {
+            repository.markNoteAsRead(note.id)
+        }
+    }
     
     suspend fun getNotesCount(): Int = repository.getNotesCount()
     
