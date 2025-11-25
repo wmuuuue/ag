@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -33,6 +34,8 @@ import com.clipnotes.app.utils.AudioRecorderManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+
+private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -68,23 +71,46 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            Log.d(TAG, "onCreate: Starting MainActivity initialization")
+            
+            Log.d(TAG, "onCreate: Inflating binding")
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            Log.d(TAG, "onCreate: Content view set")
 
-        setSupportActionBar(binding.toolbar)
+            setSupportActionBar(binding.toolbar)
+            Log.d(TAG, "onCreate: Action bar set")
 
-        audioRecorder = AudioRecorderManager(this)
-        networkService = NetworkDiscoveryService(this)
+            audioRecorder = AudioRecorderManager(this)
+            networkService = NetworkDiscoveryService(this)
+            Log.d(TAG, "onCreate: Services initialized")
 
-        setupRecyclerView()
-        setupClickListeners()
-        requestPermissions()
-        observeNotes()
-        
-        ClipboardMonitorService.pause(this)
+            setupRecyclerView()
+            Log.d(TAG, "onCreate: RecyclerView setup complete")
+            
+            setupClickListeners()
+            Log.d(TAG, "onCreate: Click listeners setup complete")
+            
+            requestPermissions()
+            Log.d(TAG, "onCreate: Permissions requested")
+            
+            observeNotes()
+            Log.d(TAG, "onCreate: Notes observer set up")
+            
+            ClipboardMonitorService.pause(this)
+            Log.d(TAG, "onCreate: ClipboardMonitorService paused")
 
-        networkService.startServer(8888) { notesJson, callback ->
-            showReceiveDialog(notesJson, callback)
+            networkService.startServer(8888) { notesJson, callback ->
+                showReceiveDialog(notesJson, callback)
+            }
+            Log.d(TAG, "onCreate: Network server started")
+            Log.d(TAG, "onCreate: MainActivity initialization complete")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "onCreate: Critical error during initialization", e)
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         }
     }
 
