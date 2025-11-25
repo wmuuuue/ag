@@ -65,7 +65,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 
                 updateColorPreview()
-                Toast.makeText(this, "颜色已更新", Toast.LENGTH_SHORT).show()
+                // 已更新
             }
             .show()
     }
