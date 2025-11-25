@@ -22,6 +22,8 @@ class ClipboardMonitorService : Service() {
     private var lastClipboardText: String? = null
     private var isMonitoringPaused = false
     private var pollingJob: Job? = null
+    private val recentlySavedContents = LinkedHashSet<String>()
+    private val MAX_SAVED_CACHE = 50
 
     override fun onCreate() {
         super.onCreate()
@@ -79,13 +81,20 @@ class ClipboardMonitorService : Service() {
             if (clip != null && clip.itemCount > 0) {
                 val text = clip.getItemAt(0).text?.toString()?.trim()
                 if (!text.isNullOrBlank()) {
-                    // 更强的去重：比较规范化后的文本
+                    // 三层去重机制：
+                    // 1. 与上一次剪贴板内容比较
                     val normalizedNew = text.trim()
                     val normalizedOld = lastClipboardText?.trim()
+                    
                     if (normalizedNew != normalizedOld) {
-                        lastClipboardText = text
-                        LoggerUtil.log("✓ 剪贴板捕获: $text")
-                        saveToDatabase(text)
+                        // 2. 检查是否已在最近保存的列表中
+                        if (!recentlySavedContents.contains(normalizedNew)) {
+                            lastClipboardText = text
+                            LoggerUtil.log("✓ 剪贴板捕获: $text")
+                            saveToDatabase(text)
+                        } else {
+                            LoggerUtil.log("⚠ 重复内容，跳过: $text")
+                        }
                     }
                 }
             }
@@ -106,16 +115,21 @@ class ClipboardMonitorService : Service() {
                     textColor = color
                 )
                 app.repository.insertNote(note)
-                LoggerUtil.log("✓ 笔记已保存: $text")
                 
-                // 保存后清空系统剪贴板
-                try {
-                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
-                    LoggerUtil.log("✓ 系统剪贴板已清空")
-                } catch (e: Exception) {
-                    LoggerUtil.logError("清空剪贴板异常", e)
+                // 添加到最近保存的内容缓存
+                val normalizedText = text.trim()
+                recentlySavedContents.add(normalizedText)
+                
+                // 如果缓存超过最大值，移除最早的
+                if (recentlySavedContents.size > MAX_SAVED_CACHE) {
+                    val iterator = recentlySavedContents.iterator()
+                    if (iterator.hasNext()) {
+                        iterator.next()
+                        iterator.remove()
+                    }
                 }
+                
+                LoggerUtil.log("✓ 笔记已保存: $text (缓存: ${recentlySavedContents.size}/$MAX_SAVED_CACHE)")
             } catch (e: Exception) {
                 LoggerUtil.logError("保存笔记异常", e)
             }
