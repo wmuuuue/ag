@@ -149,11 +149,11 @@ class MainActivity : AppCompatActivity() {
             file?.let {
                 saveAudioNote(it.absolutePath, duration)
             }
-            binding.fabRecord.setImageResource(R.drawable.ic_mic)
+            binding.fabRecord.text = "录音"
             isRecording = false
         } else {
             audioRecorder.startRecording()
-            binding.fabRecord.setImageResource(R.drawable.ic_stop)
+            binding.fabRecord.text = "录音中"
             isRecording = true
         }
     }
