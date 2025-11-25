@@ -69,7 +69,7 @@ class FloatingWindowService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("剪切板笔记")
             .setContentText("浮动窗口运行中...")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .build()
     }
