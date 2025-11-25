@@ -12,7 +12,9 @@ data class NoteEntity(
     val textColor: Int,
     val timestamp: Long = System.currentTimeMillis(),
     val audioFilePath: String? = null,
-    val audioDuration: Long = 0
+    val audioDuration: Long = 0,
+    val isRead: Boolean = false,
+    val lastReadTime: Long = 0
 )
 
 enum class ContentType {
