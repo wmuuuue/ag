@@ -457,22 +457,19 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         Log.d(TAG, "onResume: Pausing clipboard monitoring")
         ClipboardMonitorService.pause(this)
-        scrollToLastReadNote()
+        scrollToLatestNote()
     }
     
-    private fun scrollToLastReadNote() {
+    private fun scrollToLatestNote() {
         lifecycleScope.launch {
             try {
-                val lastReadNote = viewModel.getAllNotesSnapshot().firstOrNull { it.isRead }
-                if (lastReadNote != null) {
-                    val notes = viewModel.getAllNotesSnapshot()
-                    val index = notes.indexOfFirst { it.id == lastReadNote.id }
-                    if (index >= 0) {
-                        binding.recyclerView.scrollToPosition(index)
-                    }
+                val notes = viewModel.getAllNotesSnapshot()
+                if (notes.isNotEmpty()) {
+                    // 滚动到最后一条（最新的笔记）
+                    binding.recyclerView.scrollToPosition(notes.size - 1)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error scrolling to last read note", e)
+                Log.e(TAG, "Error scrolling to latest note", e)
             }
         }
     }
