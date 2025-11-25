@@ -280,15 +280,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestClipboardPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CLIPBOARD_DATA)
+            // READ_CLIPBOARD_DATA only exists on Android 13+
+            val readClipboardPermission = "android.permission.READ_CLIPBOARD_DATA"
+            if (ContextCompat.checkSelfPermission(this, readClipboardPermission)
                 != PackageManager.PERMISSION_GRANTED) {
                 LoggerUtil.log("请求剪贴板读取权限...")
-                clipboardPermissionLauncher.launch(Manifest.permission.READ_CLIPBOARD_DATA)
+                clipboardPermissionLauncher.launch(readClipboardPermission)
             } else {
                 LoggerUtil.log("✓ 剪贴板权限已存在")
                 startServices()
             }
         } else {
+            LoggerUtil.log("Android 12 及以下无需运行时权限，直接启动服务")
             startServices()
         }
     }
