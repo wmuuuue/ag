@@ -58,36 +58,12 @@ class ClipboardMonitorService : Service() {
     }
 
     private fun startPolling() {
-        pollingJob = scope.launch(Dispatchers.Default) {
-            while (isActive) {
-                try {
-                    if (!isMonitoringPaused) {
-                        checkClipboard()
-                    }
-                    delay(200) // 每 200ms 检查一次
-                } catch (e: Exception) {
-                    delay(1000)
-                }
-            }
-        }
+        // 不再轮询，只在后台保持服务运行
+        // 由浮动窗口手动触发保存
     }
 
     private fun checkClipboard() {
-        try {
-            val clip = clipboardManager?.primaryClip
-            if (clip != null && clip.itemCount > 0) {
-                val text = clip.getItemAt(0).text?.toString()?.trim()
-                if (!text.isNullOrBlank()) {
-                    val normalizedNew = text.trim()
-                    val normalizedOld = lastClipboardText?.trim()
-                    
-                    if (normalizedNew != normalizedOld) {
-                        lastClipboardText = text
-                    }
-                }
-            }
-        } catch (e: Exception) {
-        }
+        // 不再使用，改由浮动窗口直接读取剪切板
     }
     
     fun getLatestClipboardText(): String? {
