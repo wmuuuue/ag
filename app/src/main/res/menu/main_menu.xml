@@ -20,4 +20,9 @@
         android:title="@string/clear"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_logs"
+        android:title="查看日志"
+        app:showAsAction="never" />
+
 </menu>
