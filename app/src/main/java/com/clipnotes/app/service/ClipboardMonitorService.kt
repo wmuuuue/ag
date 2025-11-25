@@ -13,6 +13,7 @@ import com.clipnotes.app.data.ContentType
 import com.clipnotes.app.data.NoteEntity
 import com.clipnotes.app.data.NoteRepository
 import com.clipnotes.app.ui.MainActivity
+import com.clipnotes.app.utils.LoggerUtil
 import kotlinx.coroutines.*
 
 class ClipboardMonitorService : Service() {
@@ -29,6 +30,7 @@ class ClipboardMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        LoggerUtil.log("ClipboardMonitorService 已启动")
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager?.addPrimaryClipChangedListener(clipboardListener)
         createNotificationChannel()
@@ -37,34 +39,48 @@ class ClipboardMonitorService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_PAUSE_MONITORING -> pauseMonitoring()
-            ACTION_RESUME_MONITORING -> resumeMonitoring()
-            ACTION_STOP_SERVICE -> stopSelf()
+            ACTION_PAUSE_MONITORING -> {
+                LoggerUtil.log("暂停剪贴板监控")
+                pauseMonitoring()
+            }
+            ACTION_RESUME_MONITORING -> {
+                LoggerUtil.log("恢复剪贴板监控")
+                resumeMonitoring()
+            }
+            ACTION_STOP_SERVICE -> {
+                LoggerUtil.log("停止 ClipboardMonitorService")
+                stopSelf()
+            }
         }
         return START_STICKY
     }
 
     private fun handleClipboardChange() {
+        LoggerUtil.log("检测到剪贴板变化")
         try {
             val clip = clipboardManager?.primaryClip
             if (clip != null && clip.itemCount > 0) {
                 val text = clip.getItemAt(0).text?.toString()
+                LoggerUtil.log("剪贴板内容: $text")
                 if (!text.isNullOrBlank() && text != lastClipboardText) {
                     lastClipboardText = text
-                    android.util.Log.d("ClipboardMonitor", "剪贴板变化捕获: $text")
+                    LoggerUtil.log("准备保存: $text")
                     saveToDatabase(text)
                 } else {
-                    android.util.Log.d("ClipboardMonitor", "剪贴板内容未变化或为空")
+                    LoggerUtil.log("内容未变化或为空，跳过")
                 }
+            } else {
+                LoggerUtil.log("剪贴板为空")
             }
         } catch (e: Exception) {
-            android.util.Log.e("ClipboardMonitor", "读取剪贴板错误", e)
+            LoggerUtil.logError("读取剪贴板异常", e)
         }
     }
 
     private fun saveToDatabase(text: String) {
         scope.launch(Dispatchers.IO) {
             try {
+                LoggerUtil.log("开始保存笔记到数据库")
                 val app = application as NoteApplication
                 val color = app.preferenceManager.clipboardTextColor
                 val note = NoteEntity(
@@ -73,9 +89,9 @@ class ClipboardMonitorService : Service() {
                     textColor = color
                 )
                 app.repository.insertNote(note)
-                android.util.Log.d("ClipboardMonitor", "笔记已保存到数据库: $text")
+                LoggerUtil.log("✓ 笔记已保存: $text")
             } catch (e: Exception) {
-                android.util.Log.e("ClipboardMonitor", "保存笔记错误", e)
+                LoggerUtil.logError("保存笔记异常", e)
             }
         }
     }
