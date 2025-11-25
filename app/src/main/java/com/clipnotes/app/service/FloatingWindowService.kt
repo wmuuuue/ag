@@ -18,8 +18,6 @@ class FloatingWindowService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification())
         showFloatingWindow()
     }
 
@@ -54,7 +52,7 @@ class FloatingWindowService : Service() {
         floatingView?.findViewById<ImageView>(R.id.floatingIcon)?.apply {
             setOnClickListener {
                 val intent = Intent(this@FloatingWindowService, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                 }
                 startActivity(intent)
             }
@@ -89,36 +87,6 @@ class FloatingWindowService : Service() {
         windowManager?.addView(floatingView, params)
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "浮动窗口服务",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "显示浮动图标"
-            }
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
-    private fun createNotification(): Notification {
-        val intent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("剪贴板笔记")
-            .setContentText("浮动窗口正在运行")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .build()
-    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -128,16 +96,9 @@ class FloatingWindowService : Service() {
     }
 
     companion object {
-        private const val CHANNEL_ID = "floating_window_channel"
-        private const val NOTIFICATION_ID = 1002
-
         fun start(context: Context) {
             val intent = Intent(context, FloatingWindowService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
+            context.startService(intent)
         }
 
         fun stop(context: Context) {
