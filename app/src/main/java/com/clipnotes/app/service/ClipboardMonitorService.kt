@@ -63,7 +63,7 @@ class ClipboardMonitorService : Service() {
                     if (!isMonitoringPaused) {
                         checkClipboard()
                     }
-                    delay(500) // 每 500ms 检查一次
+                    delay(200) // 每 500ms 检查一次
                 } catch (e: Exception) {
                     LoggerUtil.logError("轮询异常", e)
                     delay(1000)
