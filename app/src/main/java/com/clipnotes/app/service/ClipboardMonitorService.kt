@@ -54,6 +54,12 @@ class ClipboardMonitorService : Service() {
             ACTION_STOP_SERVICE -> {
                 stopSelf()
             }
+            else -> {
+                // 定期检查剪贴板，即使服务被重启也会继续运行
+                scope.launch {
+                    checkClipboard()
+                }
+            }
         }
         return START_STICKY
     }
