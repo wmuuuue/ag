@@ -112,9 +112,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 
-                // 1秒后自动按返回键进入后台
+                // 1秒后自动进入后台
                 Handler(Looper.getMainLooper()).postDelayed({
-                    onBackPressed()
+                    moveTaskToBack(true)
                 }, 1000)
             }
             
