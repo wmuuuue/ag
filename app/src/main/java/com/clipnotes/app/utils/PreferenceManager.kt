@@ -12,6 +12,7 @@ class PreferenceManager(context: Context) {
         private const val KEY_CLIPBOARD_TEXT_COLOR = "clipboard_text_color"
         private const val KEY_USER_INPUT_TEXT_COLOR = "user_input_text_color"
         private const val KEY_DEVICE_ID = "device_id"
+        private const val KEY_CLIPBOARD_MONITORING_ENABLED = "clipboard_monitoring_enabled"
         private const val DEFAULT_CLIPBOARD_COLOR = -16776961  // Blue
         private const val DEFAULT_USER_INPUT_COLOR = -16777216  // Black
     }
@@ -23,6 +24,10 @@ class PreferenceManager(context: Context) {
     var userInputTextColor: Int
         get() = prefs.getInt(KEY_USER_INPUT_TEXT_COLOR, DEFAULT_USER_INPUT_COLOR)
         set(value) = prefs.edit().putInt(KEY_USER_INPUT_TEXT_COLOR, value).apply()
+
+    var isClipboardMonitoringEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CLIPBOARD_MONITORING_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_CLIPBOARD_MONITORING_ENABLED, value).apply()
 
     var deviceId: String
         get() = prefs.getString(KEY_DEVICE_ID, null) 
