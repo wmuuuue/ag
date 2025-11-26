@@ -143,7 +143,7 @@ class FloatingWindowService : Service() {
                                     Toast.makeText(this@FloatingWindowService, "📌 点击已触发", Toast.LENGTH_SHORT).show()
                                 }
                                 saveClipboardToNote()
-                                showClickFeedback()
+                                showMainActivityBriefly()
                             }
                             return true
                         }
@@ -156,36 +156,54 @@ class FloatingWindowService : Service() {
         windowManager?.addView(floatingView, params)
     }
 
-    private fun showClickFeedback() {
-        val iconView = floatingView?.findViewById<ImageView>(R.id.floatingIcon)
-
-        mainHandler.post {
-            iconView?.visibility = View.GONE
+    private fun showMainActivityBriefly() {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
-
+        startActivity(intent)
+        
         mainHandler.postDelayed({
-            iconView?.visibility = View.VISIBLE
+            try {
+                val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                activityManager.appTasks.forEach { task ->
+                    if (task.taskInfo.baseActivity?.packageName == packageName) {
+                        task.moveToBack(true)
+                    }
+                }
+            } catch (e: Exception) {
+            }
         }, 1000)
     }
 
     private fun saveClipboardToNote() {
-        scope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.IO) {
             try {
+                android.util.Log.d("FloatingWindowService", "开始保存剪切板内容到笔记")
+                
                 val clip = clipboardManager?.primaryClip
                 if (clip != null && clip.itemCount > 0) {
                     val text = clip.getItemAt(0).text?.toString()?.trim()
                     if (!text.isNullOrBlank()) {
-                        val app = application as NoteApplication
-                        val color = app.preferenceManager.clipboardTextColor
-                        val note = NoteEntity(
-                            content = text,
-                            contentType = ContentType.CLIPBOARD_TEXT,
-                            textColor = color
-                        )
-                        app.repository.insertNote(note)
+                        try {
+                            val context = this@FloatingWindowService
+                            val app = context.applicationContext as NoteApplication
+                            
+                            val color = app.preferenceManager.clipboardTextColor
+                            val note = NoteEntity(
+                                content = text,
+                                contentType = ContentType.CLIPBOARD_TEXT,
+                                textColor = color
+                            )
+                            
+                            val noteId = app.repository.insertNote(note)
 
-                        mainHandler.post {
-                            Toast.makeText(this@FloatingWindowService, "✅ 已保存到笔记: ${text.take(20)}", Toast.LENGTH_SHORT).show()
+                            mainHandler.post {
+                                Toast.makeText(this@FloatingWindowService, "✅ 已保存: ${text.take(20)}", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (dbError: Exception) {
+                            mainHandler.post {
+                                Toast.makeText(this@FloatingWindowService, "❌ 错误: ${dbError.message}", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     } else {
                         mainHandler.post {
@@ -199,7 +217,7 @@ class FloatingWindowService : Service() {
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    Toast.makeText(this@FloatingWindowService, "❌ 保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FloatingWindowService, "❌ 保存失败", Toast.LENGTH_SHORT).show()
                 }
             }
         }
