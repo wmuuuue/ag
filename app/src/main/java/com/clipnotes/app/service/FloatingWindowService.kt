@@ -26,8 +26,6 @@ class FloatingWindowService : Service() {
     private var clipboardManager: ClipboardManager? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var readCount = 0
-    private var totalCount = 0
 
     companion object {
         private const val NOTIFICATION_ID = 2
@@ -68,19 +66,8 @@ class FloatingWindowService : Service() {
     }
 
     private fun createNotification(): Notification {
-        try {
-            val app = applicationContext as NoteApplication
-            runBlocking {
-                val notes = app.repository.getAllNotes().first()
-                totalCount = notes.size
-                readCount = notes.count { it.isRead }
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("FloatingWindowService", "Failed to get note counts", e)
-        }
-        
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("$readCount/$totalCount")
+            .setContentTitle("剪切板笔记")
             .setContentText("浮动窗口运行中...")
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
