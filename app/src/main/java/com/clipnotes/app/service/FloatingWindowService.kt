@@ -26,6 +26,8 @@ class FloatingWindowService : Service() {
     private var clipboardManager: ClipboardManager? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var readCount = 0
+    private var totalCount = 0
 
     companion object {
         private const val NOTIFICATION_ID = 2
@@ -51,6 +53,24 @@ class FloatingWindowService : Service() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
         showFloatingWindow()
+        updateNoteCounts()
+    }
+    
+    private fun updateNoteCounts() {
+        scope.launch {
+            try {
+                val app = applicationContext as NoteApplication
+                val notes = app.repository.getAllNotes().first()
+                totalCount = notes.size
+                readCount = notes.count { note -> note.isRead }
+                mainHandler.post {
+                    val notificationManager = getSystemService(NotificationManager::class.java)
+                    notificationManager.notify(NOTIFICATION_ID, createNotification())
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("FloatingWindowService", "Failed to update note counts", e)
+            }
+        }
     }
 
     private fun createNotificationChannel() {
@@ -66,20 +86,6 @@ class FloatingWindowService : Service() {
     }
 
     private fun createNotification(): Notification {
-        var readCount = 0
-        var totalCount = 0
-        
-        try {
-            val app = applicationContext as NoteApplication
-            val notes = runBlocking {
-                app.repository.getAllNotes().first()
-            }
-            totalCount = notes.size
-            readCount = notes.count { it.isRead }
-        } catch (e: Exception) {
-            android.util.Log.e("FloatingWindowService", "Failed to get note counts", e)
-        }
-        
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("$readCount/$totalCount")
             .setContentText("浮动窗口运行中...")
