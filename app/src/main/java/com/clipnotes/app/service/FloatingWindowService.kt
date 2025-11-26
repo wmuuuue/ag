@@ -164,6 +164,13 @@ class FloatingWindowService : Service() {
     private fun saveClipboardToNote() {
         GlobalScope.launch(Dispatchers.IO) {
             try {
+                val context = this@FloatingWindowService
+                val app = context.applicationContext as NoteApplication
+                
+                if (!app.preferenceManager.isClipboardMonitoringEnabled) {
+                    return@launch
+                }
+                
                 android.util.Log.d("FloatingWindowService", "开始保存剪切板内容到笔记")
                 
                 val clip = clipboardManager?.primaryClip
@@ -171,9 +178,6 @@ class FloatingWindowService : Service() {
                     val text = clip.getItemAt(0).text?.toString()?.trim()
                     if (!text.isNullOrBlank()) {
                         try {
-                            val context = this@FloatingWindowService
-                            val app = context.applicationContext as NoteApplication
-                            
                             val color = app.preferenceManager.clipboardTextColor
                             val note = NoteEntity(
                                 content = text,
