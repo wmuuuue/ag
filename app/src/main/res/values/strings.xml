@@ -11,4 +11,5 @@
     <string name="clipboard_text_color">剪贴板文字颜色</string>
     <string name="user_input_text_color">用户输入文字颜色</string>
     <string name="change_color">更改</string>
+    <string name="accessibility_service_description">自动保存剪贴板内容到笔记</string>
 </resources>
