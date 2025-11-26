@@ -55,8 +55,6 @@ class MainActivity : AppCompatActivity() {
     ) { isGranted ->
         if (isGranted) {
             toggleRecording()
-        } else {
-            Toast.makeText(this, "需要录音权限", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -65,8 +63,6 @@ class MainActivity : AppCompatActivity() {
     ) {
         if (Settings.canDrawOverlays(this)) {
             requestClipboardPermission()
-        } else {
-            Toast.makeText(this, "需要悬浮窗权限", Toast.LENGTH_SHORT).show()
         }
     }
 
