@@ -165,10 +165,10 @@ class FloatingWindowService : Service() {
         mainHandler.postDelayed({
             try {
                 val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-                activityManager.appTasks.forEach { task ->
-                    if (task.taskInfo.baseActivity?.packageName == packageName) {
-                        task.moveToBack(true)
-                    }
+                val appTasks = activityManager.appTasks
+                if (appTasks.isNotEmpty()) {
+                    val taskId = appTasks[0].taskInfo.taskId
+                    activityManager.moveTaskToBack(taskId, true)
                 }
             } catch (e: Exception) {
             }
