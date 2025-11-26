@@ -104,8 +104,17 @@ class MainActivity : AppCompatActivity() {
             
             // 检查是否需要短暂显示后关闭
             if (intent?.getBooleanExtra("SHOW_BRIEFLY", false) == true) {
+                // 先滚动到底部
+                lifecycleScope.launch {
+                    val notes = viewModel.getAllNotesSnapshot()
+                    if (notes.isNotEmpty()) {
+                        binding.recyclerView.scrollToPosition(notes.size - 1)
+                    }
+                }
+                
+                // 1秒后自动按返回键进入后台
                 Handler(Looper.getMainLooper()).postDelayed({
-                    finish()
+                    onBackPressed()
                 }, 1000)
             }
             
