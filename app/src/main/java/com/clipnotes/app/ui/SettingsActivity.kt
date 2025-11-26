@@ -7,6 +7,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.clipnotes.app.NoteApplication
 import com.clipnotes.app.databinding.ActivitySettingsBinding
+import com.clipnotes.app.service.ClipboardMonitorService
+import com.clipnotes.app.service.FloatingWindowService
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
@@ -22,6 +24,19 @@ class SettingsActivity : AppCompatActivity() {
         val app = application as NoteApplication
         
         updateColorPreview()
+        
+        binding.switchClipboardMonitor.isChecked = app.preferenceManager.isClipboardMonitoringEnabled
+        
+        binding.switchClipboardMonitor.setOnCheckedChangeListener { _, isChecked ->
+            app.preferenceManager.isClipboardMonitoringEnabled = isChecked
+            if (isChecked) {
+                ClipboardMonitorService.start(this)
+                FloatingWindowService.start(this)
+            } else {
+                ClipboardMonitorService.stop(this)
+                FloatingWindowService.stop(this)
+            }
+        }
 
         binding.btnClipboardColor.setOnClickListener {
             showColorPicker(true)
