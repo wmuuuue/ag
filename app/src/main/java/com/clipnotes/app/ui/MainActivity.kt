@@ -381,8 +381,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startServices() {
-        ClipboardMonitorService.start(this)
-        FloatingWindowService.start(this)
+        val app = application as NoteApplication
+        if (app.preferenceManager.isClipboardMonitoringEnabled) {
+            ClipboardMonitorService.start(this)
+            FloatingWindowService.start(this)
+        }
         requestAccessibilityService()
     }
 
