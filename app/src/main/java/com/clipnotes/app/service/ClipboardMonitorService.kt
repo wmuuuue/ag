@@ -95,6 +95,11 @@ class ClipboardMonitorService : Service() {
 
     private fun checkClipboard() {
         try {
+            val app = applicationContext as NoteApplication
+            if (!app.preferenceManager.isClipboardMonitoringEnabled) {
+                return
+            }
+            
             val clip = clipboardManager?.primaryClip
             if (clip != null && clip.itemCount > 0) {
                 val clipText = clip.getItemAt(0).coerceToText(this@ClipboardMonitorService).toString()
