@@ -159,20 +159,9 @@ class FloatingWindowService : Service() {
     private fun showMainActivityBriefly() {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("SHOW_BRIEFLY", true)
         }
         startActivity(intent)
-        
-        mainHandler.postDelayed({
-            try {
-                val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-                val appTasks = activityManager.appTasks
-                if (appTasks.isNotEmpty()) {
-                    val taskId = appTasks[0].taskInfo.taskId
-                    activityManager.moveTaskToBack(taskId, true)
-                }
-            } catch (e: Exception) {
-            }
-        }, 1000)
     }
 
     private fun saveClipboardToNote() {
