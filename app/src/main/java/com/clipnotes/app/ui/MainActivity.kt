@@ -369,6 +369,20 @@ class MainActivity : AppCompatActivity() {
     private fun startServices() {
         ClipboardMonitorService.start(this)
         FloatingWindowService.start(this)
+        requestAccessibilityService()
+    }
+
+    private fun requestAccessibilityService() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        try {
+            Toast.makeText(
+                this,
+                "请在无障碍服务中启用\"剪贴板笔记\"以实现后台监听",
+                Toast.LENGTH_LONG
+            ).show()
+        } catch (e: Exception) {
+        }
     }
 
     private fun clearAllNotes() {
