@@ -100,6 +100,13 @@ class MainActivity : AppCompatActivity() {
                 showReceiveDialog(notesJson, callback)
             }
             
+            // 检查是否需要短暂显示后关闭
+            if (intent?.getBooleanExtra("SHOW_BRIEFLY", false) == true) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    finish()
+                }, 1000)
+            }
+            
         } catch (e: Exception) {
             Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
