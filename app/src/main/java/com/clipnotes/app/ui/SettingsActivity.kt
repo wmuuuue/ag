@@ -9,6 +9,7 @@ import com.clipnotes.app.NoteApplication
 import com.clipnotes.app.databinding.ActivitySettingsBinding
 import com.clipnotes.app.service.ClipboardMonitorService
 import com.clipnotes.app.service.FloatingWindowService
+import com.clipnotes.app.service.NotesFloatingWindowService
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
@@ -44,6 +45,16 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.btnUserInputColor.setOnClickListener {
             showColorPicker(false)
+        }
+
+        binding.btnOpenNotesWindow.setOnClickListener {
+            NotesFloatingWindowService.start(this)
+            Toast.makeText(this, "笔记浮窗已打开", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnCloseNotesWindow.setOnClickListener {
+            NotesFloatingWindowService.stop(this)
+            Toast.makeText(this, "笔记浮窗已关闭", Toast.LENGTH_SHORT).show()
         }
     }
 
