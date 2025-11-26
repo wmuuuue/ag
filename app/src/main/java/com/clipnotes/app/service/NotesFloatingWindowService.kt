@@ -83,6 +83,7 @@ class NotesFloatingWindowService : Service() {
     private fun showFloatingWindow() {
         floatingView = FrameLayout(this).apply {
             setBackgroundColor(0xFFFFFFFF.toInt())
+            elevation = 100f
         }
 
         val params = WindowManager.LayoutParams().apply {
@@ -90,13 +91,11 @@ class NotesFloatingWindowService : Service() {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else
                 WindowManager.LayoutParams.TYPE_PHONE
-            format = PixelFormat.TRANSLUCENT
-            flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+            format = PixelFormat.RGBA_8888
+            flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
             width = 400
             height = 600
-            x = 100
+            x = 50
             y = 100
         }
 
@@ -106,6 +105,7 @@ class NotesFloatingWindowService : Service() {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
+            setBackgroundColor(0xFFFFFFFF.toInt())
         }
 
         val titleBar = LinearLayout(this).apply {
@@ -137,6 +137,7 @@ class NotesFloatingWindowService : Service() {
                 0,
                 1f
             )
+            setBackgroundColor(0xFFFFFFFF.toInt())
         }
 
         val scrollView = ScrollView(this).apply {
@@ -151,8 +152,6 @@ class NotesFloatingWindowService : Service() {
         container.addView(titleBar)
         container.addView(scrollView)
         floatingView?.addView(container)
-
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
 
         floatingView?.setOnTouchListener { v, event ->
             when (event.action) {
@@ -171,13 +170,11 @@ class NotesFloatingWindowService : Service() {
                         isDragging = true
                         params.x = initialX + deltaX
                         params.y = initialY + deltaY
-                        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         windowManager?.updateViewLayout(floatingView, params)
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                     true
                 }
                 else -> false
