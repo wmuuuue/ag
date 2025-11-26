@@ -139,9 +139,6 @@ class FloatingWindowService : Service() {
                             val deltaX = (event.rawX - initialTouchX).toInt()
                             val deltaY = (event.rawY - initialTouchY).toInt()
                             if (!isDragging && Math.abs(deltaX) <= 10 && Math.abs(deltaY) <= 10) {
-                                mainHandler.post {
-                                    Toast.makeText(this@FloatingWindowService, "📌 点击已触发", Toast.LENGTH_SHORT).show()
-                                }
                                 saveClipboardToNote()
                                 showMainActivityBriefly()
                             }
@@ -185,29 +182,13 @@ class FloatingWindowService : Service() {
                             )
                             
                             val noteId = app.repository.insertNote(note)
-
-                            mainHandler.post {
-                                Toast.makeText(this@FloatingWindowService, "✅ 已保存: ${text.take(20)}", Toast.LENGTH_SHORT).show()
-                            }
                         } catch (dbError: Exception) {
-                            mainHandler.post {
-                                Toast.makeText(this@FloatingWindowService, "❌ 错误: ${dbError.message}", Toast.LENGTH_SHORT).show()
-                            }
+                            android.util.Log.e("FloatingWindowService", "保存笔记失败", dbError)
                         }
-                    } else {
-                        mainHandler.post {
-                            Toast.makeText(this@FloatingWindowService, "❌ 剪切板为空", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } else {
-                    mainHandler.post {
-                        Toast.makeText(this@FloatingWindowService, "❌ 剪切板为空", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                mainHandler.post {
-                    Toast.makeText(this@FloatingWindowService, "❌ 保存失败", Toast.LENGTH_SHORT).show()
-                }
+                android.util.Log.e("FloatingWindowService", "保存失败", e)
             }
         }
     }
