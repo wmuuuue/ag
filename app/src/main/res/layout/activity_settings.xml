@@ -81,7 +81,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
 
         <TextView
             android:layout_width="0dp"
@@ -95,5 +96,27 @@
             android:layout_height="wrap_content" />
 
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="浮窗功能"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnOpenNotesWindow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="打开笔记浮窗"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnCloseNotesWindow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="关闭笔记浮窗" />
 
 </LinearLayout>
