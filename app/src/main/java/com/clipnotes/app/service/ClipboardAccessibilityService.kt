@@ -112,9 +112,9 @@ class ClipboardAccessibilityService : AccessibilityService() {
                 val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) 
                     as android.view.accessibility.AccessibilityManager
                 val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(
-                    android.accessibilityservice.AccessibilityService.FEEDBACK_ALL_MASKS
+                    android.accessibilityservice.AccessibilityService.FEEDBACK_GENERIC
                 )
-                enabledServices.any { it.id.contains("com.clipnotes.app/.service.ClipboardAccessibilityService") }
+                enabledServices.any { it.id.contains("com.clipnotes.app") && it.id.contains("ClipboardAccessibilityService") }
             } catch (e: Exception) {
                 false
             }
