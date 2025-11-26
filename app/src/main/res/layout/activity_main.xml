@@ -16,14 +16,48 @@
             android:layout_height="wrap_content"
             android:layout_weight="0">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="24dp"
+                android:layout_height="wrap_content"
                 android:background="?attr/colorPrimary"
-                android:title=""
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+                android:orientation="vertical"
+                android:padding="4dp">
+                
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="24dp"
+                    android:title=""
+                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="4dp"
+                    android:gravity="end">
+                    
+                    <TextView
+                        android:id="@+id/readCountText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="已读: 0"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="16dp" />
+                    
+                    <TextView
+                        android:id="@+id/totalCountText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="总数: 0"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                    
+                </LinearLayout>
+                
+            </LinearLayout>
 
         </com.google.android.material.appbar.AppBarLayout>
 
