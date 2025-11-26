@@ -346,7 +346,8 @@ class MainActivity : AppCompatActivity() {
     private fun updateTitleWithCounts(notes: List<NoteEntity>) {
         val totalCount = notes.size
         val readCount = notes.count { it.isRead }
-        supportActionBar?.title = ""
+        binding.readCountText.text = "已读: $readCount"
+        binding.totalCountText.text = "总数: $totalCount"
     }
 
     private fun requestPermissions() {
