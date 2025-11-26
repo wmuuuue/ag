@@ -66,8 +66,22 @@ class FloatingWindowService : Service() {
     }
 
     private fun createNotification(): Notification {
+        var readCount = 0
+        var totalCount = 0
+        
+        try {
+            val app = applicationContext as NoteApplication
+            val notes = runBlocking {
+                app.repository.getAllNotes().first()
+            }
+            totalCount = notes.size
+            readCount = notes.count { it.isRead }
+        } catch (e: Exception) {
+            android.util.Log.e("FloatingWindowService", "Failed to get note counts", e)
+        }
+        
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("剪切板笔记")
+            .setContentTitle("$readCount/$totalCount")
             .setContentText("浮动窗口运行中...")
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
