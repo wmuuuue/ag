@@ -29,6 +29,7 @@ class ClipboardMonitorService : Service() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var clipboardNotifyCount = 0
     private var savedNotifyCount = 0
+    private var clipboardListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -58,12 +59,57 @@ class ClipboardMonitorService : Service() {
     }
 
     private fun startPolling() {
-        // 不再轮询，只在后台保持服务运行
-        // 由浮动窗口手动触发保存
+        try {
+            // 注册剪贴板变化监听器
+            clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+                if (!isMonitoringPaused) {
+                    checkClipboard()
+                }
+            }
+            clipboardManager?.addPrimaryClipChangedListener(clipboardListener!!)
+        } catch (e: Exception) {
+            // 如果监听器方式失败，使用轮询备用方案
+            startPollingFallback()
+        }
+    }
+
+    private fun startPollingFallback() {
+        pollingJob = scope.launch {
+            while (isActive) {
+                try {
+                    if (!isMonitoringPaused) {
+                        checkClipboard()
+                    }
+                    delay(1000) // 每秒检查一次
+                } catch (e: Exception) {
+                }
+            }
+        }
     }
 
     private fun checkClipboard() {
-        // 不再使用，改由浮动窗口直接读取剪切板
+        try {
+            val clip = clipboardManager?.primaryClip
+            if (clip != null && clip.itemCount > 0) {
+                val clipText = clip.getItemAt(0).coerceToText(this@ClipboardMonitorService).toString()
+                
+                // 检查是否为新内容且未被保存过
+                if (clipText.isNotEmpty() && clipText != lastClipboardText && 
+                    !recentlySavedContents.contains(clipText)) {
+                    
+                    lastClipboardText = clipText
+                    recentlySavedContents.add(clipText)
+                    
+                    // 控制缓存大小
+                    if (recentlySavedContents.size > MAX_SAVED_CACHE) {
+                        recentlySavedContents.remove(recentlySavedContents.first())
+                    }
+                    
+                    saveToDatabase(clipText)
+                }
+            }
+        } catch (e: Exception) {
+        }
     }
     
     fun getLatestClipboardText(): String? {
@@ -141,6 +187,13 @@ class ClipboardMonitorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // 移除剪贴板监听器
+        try {
+            if (clipboardListener != null) {
+                clipboardManager?.removePrimaryClipChangedListener(clipboardListener!!)
+            }
+        } catch (e: Exception) {
+        }
         pollingJob?.cancel()
         scope.cancel()
     }
